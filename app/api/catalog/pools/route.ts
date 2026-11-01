@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 
+export const dynamic = 'force-dynamic'; // Отключаем кэш Next.js
+
 export async function GET() {
   const supabase = createServerClient();
   const [names, titles, descs, traits] = await Promise.all([

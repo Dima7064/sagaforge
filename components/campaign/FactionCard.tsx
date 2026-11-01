@@ -10,21 +10,9 @@ import { Select } from "@/components/ui/select";
 import { useToast } from "@/lib/hooks/useToast";
 import type { Faction } from "@/types/generator";
 
-const ATTITUDE_LABEL: Record<string, string> = {
-  ally: "Союзник",
-  enemy: "Враг",
-  neutral: "Нейтрал",
-};
+const ATTITUDE_LABEL: Record<string, string> = { ally: "Союзник", enemy: "Враг", neutral: "Нейтрал" };
 
-export function FactionCard({
-  faction,
-  factionId,
-  canEdit,
-}: {
-  faction: Faction;
-  factionId: string;
-  canEdit: boolean;
-}) {
+export function FactionCard({ faction, factionId, canEdit }: { faction: Faction; factionId: string; canEdit: boolean; }) {
   const router = useRouter();
   const { show } = useToast();
   const [editing, setEditing] = useState(false);
@@ -32,12 +20,11 @@ export function FactionCard({
   const [name, setName] = useState(faction.name);
   const [goals, setGoals] = useState(faction.goals);
   const [description, setDescription] = useState(faction.description);
-  
   const [pools, setPools] = useState<any>(null);
 
   useEffect(() => {
     if (!editing || pools) return;
-    fetch("/api/catalog/pools").then(r => r.json()).then(d => setPools(d));
+    fetch("/api/catalog/pools").then(r => r.json()).then(d => setPools(d)).catch(console.error);
   }, [editing, pools]);
 
   async function handleSave() {
@@ -48,63 +35,26 @@ export function FactionCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, goals, description }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Ошибка");
-      }
+      if (!res.ok) throw new Error("Ошибка");
       show("success", "Фракция обновлена");
       setEditing(false);
       router.refresh();
-    } catch (e) {
-      show("error", e instanceof Error ? e.message : "Ошибка");
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { show("error", "Ошибка"); } finally { setSaving(false); }
   }
 
-  async function saveToLibrary() {
-    try {
-      const res = await fetch("/api/library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "faction",
-          name: faction.name,
-          data: { goals: faction.goals, attitude: faction.attitude, description: faction.description },
-        }),
-      });
-      if (!res.ok) throw new Error("Ошибка сохранения");
-      show("success", "Фракция сохранена в библиотеку");
-    } catch (e) {
-      show("error", "Не удалось сохранить");
-    }
-  }
+  const factDescs = pools?.descriptions?.filter((d:any) => d.entity_type === "faction") || [];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
-          {editing ? (
-            <span className="text-base text-forge-parchment">Редактирование</span>
-          ) : (
-            <span>{faction.name}</span>
-          )}
+          {editing ? <span className="text-base text-forge-parchment">Редактирование</span> : <span>{faction.name}</span>}
           <div className="flex gap-2 items-center">
-            <Badge
-              variant={
-                faction.attitude === "enemy"
-                  ? "ember"
-                  : faction.attitude === "ally"
-                  ? "success"
-                  : "muted"
-              }
-            >
+            <Badge variant={faction.attitude === "enemy" ? "ember" : faction.attitude === "ally" ? "success" : "muted"}>
               {ATTITUDE_LABEL[faction.attitude] ?? faction.attitude}
             </Badge>
             {canEdit && !editing && factionId && (
-              <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-                Изменить
-              </Button>
+              <Button size="sm" variant="outline" onClick={() => setEditing(true)}>Изменить</Button>
             )}
           </div>
         </CardTitle>
@@ -116,7 +66,7 @@ export function FactionCard({
               <Label>Название</Label>
               <Select value={name} onChange={(e) => setName(e.target.value)}>
                 <option value={faction.name}>{faction.name} (текущее)</option>
-                {pools?.descriptions?.filter((d:any) => d.entity_type === "faction").map((d:any, i:number) => (
+                {factDescs.map((d:any, i:number) => (
                   <option key={i} value={d.text.split(".")[0]}>{d.text.split(".")[0]}</option>
                 ))}
               </Select>
@@ -125,38 +75,25 @@ export function FactionCard({
               <Label>Цели</Label>
               <Select value={goals} onChange={(e) => setGoals(e.target.value)}>
                 <option value={faction.goals}>{faction.goals} (текущее)</option>
-                {pools?.descriptions?.filter((d:any) => d.entity_type === "faction").map((d:any, i:number) => (
-                  <option key={i} value={d.text}>{d.text}</option>
-                ))}
+                {factDescs.map((d:any, i:number) => <option key={i} value={d.text}>{d.text}</option>)}
               </Select>
             </div>
             <div>
               <Label>Описание</Label>
               <Select value={description} onChange={(e) => setDescription(e.target.value)}>
                 <option value={faction.description}>{faction.description} (текущее)</option>
-                {pools?.descriptions?.filter((d:any) => d.entity_type === "faction").map((d:any, i:number) => (
-                  <option key={i} value={d.text}>{d.text}</option>
-                ))}
+                {factDescs.map((d:any, i:number) => <option key={i} value={d.text}>{d.text}</option>)}
               </Select>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={saving} aria-busy={saving}>
-                {saving ? "Сохраняем..." : "Сохранить"}
-              </Button>
-              <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
-                Отмена
-              </Button>
+              <Button onClick={handleSave} disabled={saving}>{saving ? "..." : "Сохранить"}</Button>
+              <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>Отмена</Button>
             </div>
           </div>
         ) : (
           <>
             <p className="text-sm text-forge-parchment">{faction.description}</p>
             <p className="text-xs text-forge-muted">Цель: {faction.goals}</p>
-            {canEdit && (
-              <div className="flex gap-2 pt-2">
-                 <Button size="sm" variant="ghost" onClick={saveToLibrary}>В библиотеку</Button>
-              </div>
-            )}
           </>
         )}
       </CardContent>

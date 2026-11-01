@@ -29,7 +29,7 @@ export function LocationCard({ location, locationId, canEdit, links }: { locatio
 
   useEffect(() => {
     if (!editing || pools) return;
-    fetch("/api/catalog/pools").then(r => r.json()).then(d => setPools(d));
+    fetch("/api/catalog/pools").then(r => r.json()).then(d => setPools(d)).catch(console.error);
   }, [editing, pools]);
 
   async function handleSave() {
@@ -47,23 +47,7 @@ export function LocationCard({ location, locationId, canEdit, links }: { locatio
     } catch (e) { show("error", "Ошибка"); } finally { setSaving(false); }
   }
 
-  async function saveToLibrary() {
-    try {
-      const res = await fetch("/api/library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "location",
-          name: location.name,
-          data: { type: location.type, description: location.description },
-        }),
-      });
-      if (!res.ok) throw new Error("Ошибка сохранения");
-      show("success", "Локация сохранена в библиотеку");
-    } catch (e) {
-      show("error", "Не удалось сохранить");
-    }
-  }
+  const locDescs = pools?.descriptions?.filter((d:any) => d.entity_type === "location") || [];
 
   return (
     <>
@@ -88,7 +72,9 @@ export function LocationCard({ location, locationId, canEdit, links }: { locatio
                 <Label>Название</Label>
                 <Select value={name} onChange={e => setName(e.target.value)}>
                   <option value={location.name}>{location.name} (текущее)</option>
-                  {pools?.descriptions?.filter((d:any) => d.entity_type === "location").map((d:any, i:number) => <option key={i} value={d.text.split(".")[0]}>{d.text.split(".")[0]}</option>)}
+                  {locDescs.map((d:any, i:number) => (
+                    <option key={i} value={d.text.split(".")[0]}>{d.text.split(".")[0]}</option>
+                  ))}
                 </Select>
               </div>
               <div>
@@ -107,7 +93,7 @@ export function LocationCard({ location, locationId, canEdit, links }: { locatio
                 <Label>Описание</Label>
                 <Select value={description} onChange={e => setDescription(e.target.value)}>
                   <option value={location.description}>{location.description} (текущее)</option>
-                  {pools?.descriptions?.filter((d:any) => d.entity_type === "location").map((d:any, i:number) => <option key={i} value={d.text}>{d.text}</option>)}
+                  {locDescs.map((d:any, i:number) => <option key={i} value={d.text}>{d.text}</option>)}
                 </Select>
               </div>
               <div className="flex gap-2 pt-2">
@@ -116,14 +102,7 @@ export function LocationCard({ location, locationId, canEdit, links }: { locatio
               </div>
             </div>
           ) : (
-            <>
-              <p className="text-sm text-forge-parchment">{location.description}</p>
-              {canEdit && (
-                <div className="flex gap-2 pt-2">
-                   <Button size="sm" variant="ghost" onClick={saveToLibrary}>В библиотеку</Button>
-                </div>
-              )}
-            </>
+            <p className="text-sm text-forge-parchment">{location.description}</p>
           )}
         </CardContent>
       </Card>
