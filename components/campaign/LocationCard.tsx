@@ -29,7 +29,7 @@ export function LocationCard({ location, locationId, canEdit, links }: { locatio
 
   useEffect(() => {
     if (!editing || pools) return;
-    fetch("/api/catalog/pools").then(r => r.json()).then(d => setPools(d)).catch(console.error);
+    fetch("/api/catalog/pools", { cache: "no-store" }).then(r => r.json()).then(d => setPools(d)).catch(console.error);
   }, [editing, pools]);
 
   async function handleSave() {

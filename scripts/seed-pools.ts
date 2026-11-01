@@ -44,21 +44,27 @@ const NPC_DESCS = [
 ];
 
 async function seed() {
+  console.log("Очистка старых пулов...");
   await supabase.from("name_pool").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("title_pool").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("description_pool").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
+  console.log("Добавление имен...");
   const namesToInsert: any[] = [];
   for (const race of RACES) {
     for (const name of NAMES) {
       namesToInsert.push({ race_name: race, name: `${name} (${race})`, locale: "ru" });
     }
   }
-  await supabase.from("name_pool").insert(namesToInsert);
+  const { error: nameErr } = await supabase.from("name_pool").insert(namesToInsert);
+  if (nameErr) console.error("Ошибка имен:", nameErr);
 
+  console.log("Добавление названий...");
   const titlesToInsert = TITLES.map(t => ({ title: t, locale: "ru" }));
-  await supabase.from("title_pool").insert(titlesToInsert);
+  const { error: titleErr } = await supabase.from("title_pool").insert(titlesToInsert);
+  if (titleErr) console.error("Ошибка названий:", titleErr);
 
+  console.log("Добавление описаний...");
   const descsToInsert: any[] = [];
   for (const text of LOC_DESCS) {
     descsToInsert.push({ entity_type: "location", text, locale: "ru" });
@@ -69,9 +75,14 @@ async function seed() {
   for (const text of NPC_DESCS) {
     descsToInsert.push({ entity_type: "npc", text, locale: "ru" });
   }
-  await supabase.from("description_pool").insert(descsToInsert);
-
-  console.log("Пулы успешно заполнены большим количеством данных!");
+  
+  const { error: descErr } = await supabase.from("description_pool").insert(descsToInsert);
+  
+  if (descErr) {
+    console.error("ОШИБКА БАЗЫ ДАННЫХ:", descErr);
+  } else {
+    console.log("УСПЕХ! Пулы заполнены. Добавлено описаний:", descsToInsert.length);
+  }
 }
 
 seed().catch(console.error);
