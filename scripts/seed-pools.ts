@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const RACES = ["Human", "Elf", "Dwarf", "Halfling", "Dragonborn", "Gnome", "Half-Elf", "Half-Orc", "Tiefling"];
+const RACES = ["Human", "Elf", "Dwarf", "Halfling", "Gnome", "Half-Elf", "Half-Orc"];
 const NAMES = ["Альфред", "Беатрис", "Гарат", "Дориан", "Эвелина", "Кайрен", "Лиан", "Маргарет", "Николас", "Оливия", "Борин", "Тордин", "Элара", "Сайрус", "Моргана"];
 const TITLES = ["Сумрачный лес", "Проклятие Тенебры", "Кровь и пепел", "Тайна старого маяка", "Песнь дракона", "Тени прошлого", "Клинок предателя", "Корона из костей"];
 

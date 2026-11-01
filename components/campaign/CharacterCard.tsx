@@ -82,6 +82,16 @@ export function CharacterCard({
   }
 
   const portraitSize = IMAGE_DIMENSIONS.portrait;
+  
+  const backstoryOptions = character.backstory_options && character.backstory_options.length > 1 
+    ? character.backstory_options 
+    : [
+        character.backstory,
+        "Вырос в бедности, но всегда мечтал о приключениях. Однажды судьба дала ему шанс.",
+        "Потерял семью в раннем возрасте и поклялся отомстить тем, кто в этом виновен.",
+        "Был на службе у знатного лорда, но предательство изменило его жизнь навсегда.",
+        "Обладает странным даром, который пугает его самого и окружающих."
+      ];
 
   return (
     <>
@@ -132,7 +142,7 @@ export function CharacterCard({
                   <div>
                     <Label>Раса</Label>
                     <Select value={raceName} onChange={e => setRaceName(e.target.value)}>
-                      {["Human", "Elf", "Dwarf", "Halfling", "Dragonborn", "Gnome", "Half-Elf", "Half-Orc", "Tiefling"].map(r => <option key={r} value={r}>{raceNameRu(r)}</option>)}
+                      {["Human", "Elf", "Dwarf", "Halfling", "Gnome", "Half-Elf", "Half-Orc"].map(r => <option key={r} value={r}>{raceNameRu(r)}</option>)}
                     </Select>
                   </div>
                   <div>
@@ -153,24 +163,15 @@ export function CharacterCard({
                 <div className="space-y-3">
                   <div>
                     <Label>Ценности (макс. 3)</Label>
-                    <MultiSelect 
-                      options={pools?.traits?.filter((t:any) => t.type === "value").map((t:any) => t.name) || []} 
-                      selected={values} onChange={setValues} max={3} 
-                    />
+                    <MultiSelect options={pools?.traits?.filter((t:any) => t.type === "value").map((t:any) => t.name) || []} selected={values} onChange={setValues} max={3} />
                   </div>
                   <div>
                     <Label>Страхи (макс. 2)</Label>
-                    <MultiSelect 
-                      options={pools?.traits?.filter((t:any) => t.type === "fear").map((t:any) => t.name) || []} 
-                      selected={fears} onChange={setFears} max={2} 
-                    />
+                    <MultiSelect options={pools?.traits?.filter((t:any) => t.type === "fear").map((t:any) => t.name) || []} selected={fears} onChange={setFears} max={2} />
                   </div>
                   <div>
                     <Label>Привычки (макс. 2)</Label>
-                    <MultiSelect 
-                      options={pools?.traits?.filter((t:any) => t.type === "habit").map((t:any) => t.name) || []} 
-                      selected={habits} onChange={setHabits} max={2} 
-                    />
+                    <MultiSelect options={pools?.traits?.filter((t:any) => t.type === "habit").map((t:any) => t.name) || []} selected={habits} onChange={setHabits} max={2} />
                   </div>
                 </div>
 
@@ -185,7 +186,7 @@ export function CharacterCard({
                 <div>
                   <Label>Предыстория (выбор из 5)</Label>
                   <Select value={backstory} onChange={e => setBackstory(e.target.value)}>
-                    {(character.backstory_options || [character.backstory]).map((b, i) => <option key={i} value={b}>{b}</option>)}
+                    {backstoryOptions.map((b, i) => <option key={i} value={b}>{b}</option>)}
                   </Select>
                 </div>
 
