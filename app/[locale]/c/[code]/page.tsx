@@ -6,19 +6,18 @@ import { LeaveButton } from "@/components/campaign/LeaveButton";
 import { SmartLink } from "@/components/ui/smart-link";
 import { getCampaignByCode } from "@/lib/db/campaigns";
 import { getCurrentUser } from "@/lib/auth/currentUser";
-import { SimilarCampaigns } from "@/components/campaign/SimilarCampaigns";
 
 export default async function CampaignPage({
   params,
 }: {
-  params: Promise<{ code: string }>;
+  params: Promise<{ locale: string; code: string }>;
 }) {
-  const { code } = await params;
+  const { locale, code } = await params;
   const user = await getCurrentUser();
   const campaign = await getCampaignByCode(code, user?.id);
 
   if (!campaign) notFound();
-  if (campaign.viewer_role === "none") redirect(`/join/${code}`);
+  if (campaign.viewer_role === "none") redirect(`/${locale}/join/${code}`);
 
   return (
     <main
@@ -38,13 +37,13 @@ export default async function CampaignPage({
             <Badge variant="muted">
               {campaign.viewer_role === "master" ? "Ты --- мастер" : "Ты --- игрок"}
             </Badge>
-            <SmartLink href="/dashboard">
+            <SmartLink href={`/${locale}/dashboard`}>
               <Button variant="ghost" size="sm">
                 На главную
               </Button>
             </SmartLink>
             {campaign.viewer_role === "master" && (
-              <SmartLink href={`/c/${code}/settings`}>
+              <SmartLink href={`/${locale}/c/${code}/settings`}>
                 <Button variant="ghost" size="sm">
                   Настройки
                 </Button>
@@ -57,7 +56,6 @@ export default async function CampaignPage({
         </div>
       </div>
       <CampaignTabs campaign={campaign} />
-      <SimilarCampaigns currentCode={code} />
     </main>
   );
 }
