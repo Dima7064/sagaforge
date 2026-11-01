@@ -21,7 +21,7 @@ export function SimilarCampaigns({ currentCode }: { currentCode: string }) {
 
   return (
     <div className="space-y-3 mt-8 pt-8 border-t border-forge-border">
-      <h3 className="text-xl font-semibold text-forge-gold">Похожие кампании (ML)</h3>
+      <h3 className="text-xl font-semibold text-forge-gold">Похожие кампании</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {items.map(item => (
           <Link key={item.share_code} href={`/${locale}/c/${item.share_code}`}>

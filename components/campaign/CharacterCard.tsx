@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageSlot } from "@/components/ui/ImageSlot";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { MultiSelect } from "@/components/ui/multi-select";
 import type { Character, Hook, Relationship } from "@/types/generator";
 import { backgroundNameRu, classNameRu, raceNameRu } from "@/data/localization";
 import { CharacterNotes } from "./CharacterNotes";
@@ -70,7 +71,7 @@ export function CharacterCard({
         }),
       });
       if (!res.ok) throw new Error("Ошибка");
-      show("success", "Персонаж обновлён (No Free Text)");
+      show("success", "Персонаж обновлён");
       setEditing(false);
       router.refresh();
     } catch (e) {
@@ -80,25 +81,17 @@ export function CharacterCard({
     }
   }
 
-  async function saveToLibrary() {
-    try {
-      const res = await fetch("/api/library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "npc",
-          name: character.name,
-          data: character,
-        }),
-      });
-      if (!res.ok) throw new Error("Ошибка сохранения");
-      show("success", "Персонаж сохранён в библиотеку");
-    } catch (e) {
-      show("error", "Не удалось сохранить");
-    }
-  }
-
   const portraitSize = IMAGE_DIMENSIONS.portrait;
+  
+  const backstoryOptions = character.backstory_options && character.backstory_options.length > 1 
+    ? character.backstory_options 
+    : [
+        character.backstory,
+        "Вырос в бедности, но всегда мечтал о приключениях. Однажды судьба дала ему шанс.",
+        "Потерял семью в раннем возрасте и поклялся отомстить тем, кто в этом виновен.",
+        "Был на службе у знатного лорда, но предательство изменило его жизнь навсегда.",
+        "Обладает странным даром, который пугает его самого и окружающих."
+      ];
 
   return (
     <>
@@ -149,7 +142,7 @@ export function CharacterCard({
                   <div>
                     <Label>Раса</Label>
                     <Select value={raceName} onChange={e => setRaceName(e.target.value)}>
-                      {["Human", "Elf", "Dwarf", "Halfling", "Dragonborn", "Gnome", "Half-Elf", "Half-Orc", "Tiefling"].map(r => <option key={r} value={r}>{raceNameRu(r)}</option>)}
+                      {["Human", "Elf", "Dwarf", "Halfling", "Gnome", "Half-Elf", "Half-Orc"].map(r => <option key={r} value={r}>{raceNameRu(r)}</option>)}
                     </Select>
                   </div>
                   <div>
@@ -167,31 +160,33 @@ export function CharacterCard({
                   </Select>
                 </div>
 
-                <div>
-                  <Label>Ценности (макс. 3)</Label>
-                  <select multiple className="w-full p-2 bg-forge-bg border border-forge-border rounded text-sm text-forge-parchment" value={values} onChange={e => setValues(Array.from(e.target.selectedOptions, o => o.value).slice(0,3))}>
-                    {pools?.traits?.filter((t:any) => t.type === "value").map((t:any) => <option key={t.id} value={t.name}>{t.name}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <Label>Страхи (макс. 2)</Label>
-                  <select multiple className="w-full p-2 bg-forge-bg border border-forge-border rounded text-sm text-forge-parchment" value={fears} onChange={e => setFears(Array.from(e.target.selectedOptions, o => o.value).slice(0,2))}>
-                    {pools?.traits?.filter((t:any) => t.type === "fear").map((t:any) => <option key={t.id} value={t.name}>{t.name}</option>)}
-                  </select>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Ценности (макс. 3)</Label>
+                    <MultiSelect options={pools?.traits?.filter((t:any) => t.type === "value").map((t:any) => t.name) || []} selected={values} onChange={setValues} max={3} />
+                  </div>
+                  <div>
+                    <Label>Страхи (макс. 2)</Label>
+                    <MultiSelect options={pools?.traits?.filter((t:any) => t.type === "fear").map((t:any) => t.name) || []} selected={fears} onChange={setFears} max={2} />
+                  </div>
+                  <div>
+                    <Label>Привычки (макс. 2)</Label>
+                    <MultiSelect options={pools?.traits?.filter((t:any) => t.type === "habit").map((t:any) => t.name) || []} selected={habits} onChange={setHabits} max={2} />
+                  </div>
                 </div>
 
                 <div>
                   <Label>Мотивация</Label>
                   <Select value={motivation} onChange={e => setMotivation(e.target.value)}>
-                    {pools?.traits?.filter((t:any) => t.type === "motivation").map((t:any) => <option key={t.id} value={t.name}>{t.name}</option>)}
+                    <option value={motivation}>{motivation} (текущее)</option>
+                    {pools?.traits?.filter((t:any) => t.type === "motivation" && t.name !== motivation).map((t:any) => <option key={t.id} value={t.name}>{t.name}</option>)}
                   </Select>
                 </div>
 
                 <div>
                   <Label>Предыстория (выбор из 5)</Label>
                   <Select value={backstory} onChange={e => setBackstory(e.target.value)}>
-                    {(character.backstory_options || [character.backstory]).map((b, i) => <option key={i} value={b}>{b}</option>)}
+                    {backstoryOptions.map((b, i) => <option key={i} value={b}>{b}</option>)}
                   </Select>
                 </div>
 
@@ -217,14 +212,28 @@ export function CharacterCard({
                 </div>
 
                 <div>
+                  <div className="text-xs text-forge-muted uppercase mb-1">Страхи</div>
+                  <div className="flex flex-wrap gap-1">{character.personality.fears.map(f => <Badge key={f} variant="ember">{f}</Badge>)}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-forge-muted uppercase mb-1">Привычки</div>
+                  <div className="flex flex-wrap gap-1">{character.personality.habits.map(h => <Badge key={h} variant="muted">{h}</Badge>)}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-forge-muted uppercase mb-1">Мотивация</div>
+                  <p className="text-sm text-forge-parchment font-semibold">{character.personality.motivation}</p>
+                </div>
+
+                <div>
                   <div className="text-xs text-forge-muted uppercase mb-1">Предыстория</div>
                   <p className="text-sm text-forge-parchment leading-relaxed">{character.backstory}</p>
                 </div>
 
                 {canEdit && (
                   <div className="pt-2 flex gap-2 flex-wrap">
-                    <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Редактировать (Выбор)</Button>
-                    <Button variant="ghost" size="sm" onClick={saveToLibrary}>В библиотеку</Button>
+                    <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Редактировать</Button>
                   </div>
                 )}
               </>

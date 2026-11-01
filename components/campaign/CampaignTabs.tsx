@@ -8,6 +8,7 @@ import { WorldTab } from "./WorldTab";
 import { HooksTab } from "./HooksTab";
 import { TerrainTab } from "./TerrainTab";
 import { ExportTab } from "./ExportTab";
+import { SimilarCampaigns } from "./SimilarCampaigns";
 import type { SavedCampaignData } from "@/types/generator";
 
 const ALL_TABS = [
@@ -105,6 +106,8 @@ export function CampaignTabs({ campaign }: { campaign: SavedCampaignData }) {
                 );
               })}
             </div>
+            
+            {isMaster && <SimilarCampaigns currentCode={campaign.share_code} />}
           </div>
         )}
 
